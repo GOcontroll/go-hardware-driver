@@ -72,17 +72,20 @@ static int parse_slot(struct json_object *obj, struct slot_cfg *out)
 	}
 	out->slot = (int)slot;
 
-	if (read_str(obj, "module_type", out->module_type, sizeof(out->module_type), 1) != 0) return -1;
+	/* All fields below are optional: a slot with empty/missing module_type
+	   or identifiers is treated as empty and skipped by main, not as an error.
+	   This keeps the driver running when go-modules emits placeholder slots. */
+	if (read_str(obj, "module_type",      out->module_type,      sizeof(out->module_type),      0) != 0) return -1;
 
-	if (read_int(obj, "article_number", &article, 1) != 0) return -1;
+	if (read_int(obj, "article_number", &article, 0) != 0) return -1;
 	if (article < 0 || article > UINT32_MAX) {
 		fprintf(stderr, "config: slot %d article_number out of range\n", out->slot);
 		return -1;
 	}
 	out->article_number = (uint32_t)article;
 
-	if (read_str(obj, "hardware_version", out->hardware_version, sizeof(out->hardware_version), 1) != 0) return -1;
-	if (read_str(obj, "firmware_version", out->firmware_version, sizeof(out->firmware_version), 1) != 0) return -1;
+	if (read_str(obj, "hardware_version", out->hardware_version, sizeof(out->hardware_version), 0) != 0) return -1;
+	if (read_str(obj, "firmware_version", out->firmware_version, sizeof(out->firmware_version), 0) != 0) return -1;
 	if (read_str(obj, "label",            out->label,            sizeof(out->label),            0) != 0) return -1;
 
 	struct json_object *m;
@@ -138,8 +141,9 @@ int config_load(const char *path, struct config_file *out)
 
 	size_t n = json_object_array_length(slots_arr);
 	if (n == 0) {
-		fprintf(stderr, "config: no slots configured\n");
-		goto fail;
+		out->slots = NULL;
+		out->n_slots = 0;
+		return 0;
 	}
 
 	out->slots = calloc(n, sizeof(*out->slots));
@@ -158,12 +162,25 @@ int config_load(const char *path, struct config_file *out)
 		if (parse_slot(e, &out->slots[i]) != 0) goto fail;
 	}
 
-	for (size_t i = 0; i < n; i++)
-		for (size_t j = i + 1; j < n; j++)
-			if (out->slots[i].slot == out->slots[j].slot) {
-				fprintf(stderr, "config: duplicate slot %d\n", out->slots[i].slot);
-				goto fail;
+	/* Drop duplicate slot entries: keep the first occurrence, drop the rest.
+	   This keeps the driver running even when go-modules emits a stale empty
+	   slot next to a populated one (or any other JSON producer makes a mess). */
+	size_t kept = 0;
+	for (size_t i = 0; i < n; i++) {
+		int dup = 0;
+		for (size_t j = 0; j < kept; j++) {
+			if (out->slots[j].slot == out->slots[i].slot) {
+				fprintf(stderr, "config: duplicate slot %d, dropping later entry\n",
+				        out->slots[i].slot);
+				dup = 1;
+				break;
 			}
+		}
+		if (dup) continue;
+		if (kept != i) out->slots[kept] = out->slots[i];
+		kept++;
+	}
+	out->n_slots = kept;
 
 	return 0;
 

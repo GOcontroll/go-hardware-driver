@@ -61,16 +61,24 @@ int main(void)
 	fprintf(stderr, "main: schema %s controller %s, %zu slot(s)\n",
 	        cf.schema_version, cf.controller, cf.n_slots);
 
-	struct driver *drivers = calloc(cf.n_slots, sizeof(*drivers));
-	if (!drivers) {
-		fprintf(stderr, "main: calloc: %s\n", strerror(errno));
-		config_free(&cf);
-		return EXIT_FAILURE;
+	struct driver *drivers = NULL;
+	if (cf.n_slots > 0) {
+		drivers = calloc(cf.n_slots, sizeof(*drivers));
+		if (!drivers) {
+			fprintf(stderr, "main: calloc: %s\n", strerror(errno));
+			config_free(&cf);
+			return EXIT_FAILURE;
+		}
 	}
 	size_t n_drv = 0;
 
 	for (size_t i = 0; i < cf.n_slots; i++) {
 		const struct slot_cfg *sc = &cf.slots[i];
+		if (sc->module_type[0] == '\0') {
+			fprintf(stderr, "main: slot %d empty (no module_type), skipped\n",
+			        sc->slot);
+			continue;
+		}
 		const struct driver_ops *ops = registry_lookup(sc->module_type);
 		if (!ops) {
 			fprintf(stderr, "main: slot %d type \"%s\" — no driver, skipped\n",
@@ -80,21 +88,17 @@ int main(void)
 		drivers[n_drv].ops = ops;
 		drivers[n_drv].cfg = sc;
 		if (ops->init(&drivers[n_drv], sc) != 0) {
-			fprintf(stderr, "main: slot %d type \"%s\" init failed\n",
+			fprintf(stderr, "main: slot %d type \"%s\" init failed, skipped\n",
 			        sc->slot, sc->module_type);
-			for (size_t j = 0; j < n_drv; j++) drivers[j].ops->shutdown(&drivers[j]);
-			free(drivers);
-			config_free(&cf);
-			return EXIT_FAILURE;
+			drivers[n_drv].ops = NULL;
+			drivers[n_drv].cfg = NULL;
+			continue;
 		}
 		n_drv++;
 	}
 
 	if (n_drv == 0) {
-		fprintf(stderr, "main: no drivers configured, exiting\n");
-		free(drivers);
-		config_free(&cf);
-		return EXIT_FAILURE;
+		fprintf(stderr, "main: no drivers active, idling\n");
 	}
 
 	fprintf(stderr, "main: %zu driver(s) running at 100 Hz\n", n_drv);
