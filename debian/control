@@ -1,0 +1,25 @@
+Source: go-hardware-driver
+Section: misc
+Priority: optional
+Maintainer: Rick Gijsberts <rickgijsberts@gocontroll.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ gcc-aarch64-linux-gnu,
+Standards-Version: 4.6.2
+Homepage: https://gocontroll.com
+Vcs-Browser: https://github.com/GOcontroll/go-hardware-driver
+Vcs-Git: https://github.com/GOcontroll/go-hardware-driver.git
+
+Package: go-hardware-driver
+Architecture: arm64
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: Generic driver for GOcontroll plug-in modules
+ Reads /usr/lib/firmware/gocontroll/modules.json (schema v1.0), instantiates
+ per-slot module drivers, and publishes/reads values via /dev/shm/gocontroll/.
+ .
+ Supports input-6ch and output-6ch with stubs for input-10ch, input-4-20ma,
+ output-10ch, and bridge-2ch. Runs at 100 Hz fixed tick on CPU 3 with
+ Nice=-20, started during sysinit.target.

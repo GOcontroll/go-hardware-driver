@@ -1,0 +1,16 @@
+[Unit]
+Description=GOcontroll generic hardware module driver
+Documentation=https://github.com/GOcontroll/go-hardware-driver
+DefaultDependencies=no
+ConditionPathExists=/usr/lib/firmware/gocontroll/modules.json
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/go-hardware-driver
+Nice=-20
+CPUAffinity=3
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=sysinit.target

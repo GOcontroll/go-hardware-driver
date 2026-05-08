@@ -1,0 +1,12 @@
+go-hardware-driver (0.1.0) unstable; urgency=medium
+
+  * Initial release.
+  * Generic driver for GOcontroll plug-in modules on Moduline controllers.
+  * Reads /usr/lib/firmware/gocontroll/modules.json (schema v1.0).
+  * Publishes input values and output feedback via /dev/shm/gocontroll/.
+  * Implementations: input-6ch, output-6ch.
+  * Stubs: input-10ch, input-4-20ma, output-10ch, bridge-2ch.
+  * Pulse-counter / encoder reset support per channel.
+  * 100 Hz fixed tick, sysinit.target start, CPUAffinity=3, Nice=-20.
+
+ -- Rick Gijsberts <rickgijsberts@gocontroll.com>  Thu, 08 May 2026 09:00:00 +0200
