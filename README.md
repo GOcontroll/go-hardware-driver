@@ -2,7 +2,7 @@
 
 Generieke driver voor GOcontroll plug-in modules op Moduline-controllers (M1 / L4 / HMI1).
 
-Leest `/usr/lib/firmware/gocontroll/modules.json` (schema v1.0), instantieert per slot
+Leest `/lib/firmware/gocontroll/modules.json` (schema v1.0), instantieert per slot
 de juiste module-driver, en publiceert/leest waarden via `/dev/shm/gocontroll/`.
 
 ## SHM layout

@@ -61,7 +61,7 @@ jobs:
           Priority: optional
           Homepage: https://gocontroll.com
           Description: Generic driver for GOcontroll plug-in modules
-           Reads /usr/lib/firmware/gocontroll/modules.json (schema v1.0),
+           Reads /lib/firmware/gocontroll/modules.json (schema v1.0),
            instantiates per-slot module drivers, and publishes/reads values via
            /dev/shm/gocontroll/. Supports input-6ch and output-6ch; stubs for
            input-10ch, input-4-20ma, output-10ch and bridge-2ch.

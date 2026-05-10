@@ -15,7 +15,7 @@
 #include "registry.h"
 #include "shm.h"
 
-#define CONFIG_PATH    "/usr/lib/firmware/gocontroll/modules.json"
+#define CONFIG_PATH    "/lib/firmware/gocontroll/modules.json"
 #define LOOP_PERIOD_NS 10000000L     /* 100 Hz */
 
 static volatile sig_atomic_t g_stop = 0;

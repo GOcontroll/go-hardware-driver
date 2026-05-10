@@ -2,7 +2,7 @@
 Description=GOcontroll generic hardware module driver
 Documentation=https://github.com/GOcontroll/go-hardware-driver
 DefaultDependencies=no
-ConditionPathExists=/usr/lib/firmware/gocontroll/modules.json
+ConditionPathExists=/lib/firmware/gocontroll/modules.json
 
 [Service]
 Type=simple
